@@ -14,9 +14,12 @@ services:
       - slurm-network
 
   slurmdbd:
-    image: slurm-docker-cluster:${SLURM_VERSION}
-    build:
+    image: slurm-docker-cluster:${IMAGE_TAG}
+    build: &build-config
       context: .
+      args:
+        SLURM_TAG: ${SLURM_TAG}
+        GOSU_VERSION: ${GOSU_VERSION}
     command: ["slurmdbd"]
     container_name: slurmdbd
     hostname: slurmdbd
@@ -32,18 +35,18 @@ services:
       - slurm-network
 
   slurmctld:
-    image: slurm-docker-cluster:${SLURM_VERSION}
-    build:
-      context: .
+    image: slurm-docker-cluster:${IMAGE_TAG}
+    build: *build-config
     command: ["slurmctld"]
     container_name: slurmctld
     hostname: slurmctld
     volumes: &slurm-volumes
       - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
-      - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
       - ./cgroup.conf:/etc/slurm/cgroup.conf
+      - scratch:/data/scratch
+      - ${STORAGE_PATH}:/data/storage
     expose:
       - "6817"
     depends_on:
@@ -51,13 +54,12 @@ services:
     networks:
       - slurm-network
 
-  c:
-    image: slurm-docker-cluster:${SLURM_VERSION}
-    build:
-      context: .
+  c1:
+    image: slurm-docker-cluster:${IMAGE_TAG}
+    build: *build-config
     command: ["slurmd"]
-#    hostname: c1
-#    container_name: c1
+    hostname: c1
+    container_name: c1
     volumes: *slurm-volumes
     expose:
       - "6818"
@@ -65,17 +67,13 @@ services:
       - "slurmctld"
     networks:
       - slurm-network
-    deploy:
-      mode: replicated
-      replicas: 16
-      endpoint_mode: vip
 
 volumes:
   etc_munge:
   etc_slurm:
-  slurm_jobdir:
   var_lib_mysql:
   var_log_slurm:
+  scratch:
 
 networks:
   slurm-network:

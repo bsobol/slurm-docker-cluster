@@ -17,19 +17,17 @@ RUN set -ex \
     && dnf config-manager --set-enabled powertools \
     && dnf -y install \
        nano htop mc wget git \
-       bzip2 \
-       perl \
        make \
        gcc gcc-c++\
        gnupg \
        munge munge-devel \
-       python3 python3-devel python3-pip \
-       mariadb-server mariadb-devel \
-       psmisc \
-       bash-completion \
-       vim-enhanced \
        http-parser-devel \
        json-c-devel \
+       readline readline-devel \
+       python3 python3-devel python3-pip \
+       mariadb-devel \
+       psmisc findutils \
+       bash-completion \
        apptainer \
     && dnf clean all \
     && rm -rf /var/cache/dnf
@@ -42,6 +40,7 @@ RUN set -ex \
     && export GNUPGHOME="$(mktemp -d)" \
     && gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+    && gpgconf --kill all \
     && rm -rf "${GNUPGHOME}" /usr/local/bin/gosu.asc \
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true
@@ -50,7 +49,7 @@ RUN set -ex \
     && git clone -b ${SLURM_TAG} --single-branch --depth=1 https://github.com/SchedMD/slurm.git \
     && pushd slurm \
     && ./configure --enable-debug --prefix=/usr --sysconfdir=/etc/slurm --with-mysql_config=/usr/bin  --libdir=/usr/lib64 \
-    && make install \
+    && make -j$(nproc) install \
     && install -D -m644 etc/cgroup.conf.example /etc/slurm/cgroup.conf.example \
     && install -D -m644 etc/slurm.conf.example /etc/slurm/slurm.conf.example \
     && install -D -m644 etc/slurmdbd.conf.example /etc/slurm/slurmdbd.conf.example \
@@ -66,6 +65,8 @@ RUN set -ex \
         /var/lib/slurmd \
         /var/log/slurm \
         /data \
+        /data/scratch \
+        /data/storage \
     && touch /var/lib/slurmd/node_state \
         /var/lib/slurmd/front_end_state \
         /var/lib/slurmd/job_state \

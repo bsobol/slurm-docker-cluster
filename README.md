@@ -28,13 +28,14 @@ This setup consists of the following containers:
 - **slurmctld**: The Slurm controller responsible for job and resource management.
 - **c1, c2**: Compute nodes (running `slurmd`).
 
-### Persistent Volumes:
+### Volumes:
 
-- `etc_munge`: Mounted to `/etc/munge`
-- `etc_slurm`: Mounted to `/etc/slurm`
-- `slurm_jobdir`: Mounted to `/data`
-- `var_lib_mysql`: Mounted to `/var/lib/mysql`
-- `var_log_slurm`: Mounted to `/var/log/slurm`
+- `etc_munge` mounted to `/etc/munge`
+- `etc_slurm` mounted to `/etc/slurm`
+- `var_lib_mysql` mounted to `/var/lib/mysql`
+- `var_log_slurm` mounted to `/var/log/slurm`
+- `scratch` mounted to `/data/scratch`
+- `$STORAGE_PATH` bound to `/data/storage`
 
 ## Building the Docker Image
 
@@ -113,7 +114,7 @@ normal*      up 5-00:00:00      2   idle c[1-2]
 
 ## Submitting Jobs
 
-The cluster mounts the `slurm_jobdir` volume across all nodes, making job files accessible from the `/data` directory. To submit a job:
+The cluster mounts the `scratch` volume across all nodes, making job files accessible from the `/data` directory. To submit a job:
 
 ```bash
 [root@slurmctld /]# cd /data/
