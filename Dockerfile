@@ -1,45 +1,40 @@
 FROM rockylinux:8
 
-LABEL org.opencontainers.image.source="https://github.com/giovtorres/slurm-docker-cluster" \
+LABEL org.opencontainers.image.source="https://github.com/bsobol/slurm-docker-cluster" \
       org.opencontainers.image.title="slurm-docker-cluster" \
       org.opencontainers.image.description="Slurm Docker cluster on Rocky Linux 8" \
       org.label-schema.docker.cmd="docker-compose up -d" \
-      maintainer="Giovanni Torres"
+      maintainer="Bartosz Sobol"
+
+ARG SLURM_TAG
+ARG GOSU_VERSION
 
 RUN set -ex \
-    && yum makecache \
-    && yum -y update \
-    && yum -y install dnf-plugins-core \
-    && yum config-manager --set-enabled powertools \
-    && yum -y install \
-       wget \
+    && dnf makecache \
+    && dnf install -y epel-release \
+    && dnf -y update \
+    && dnf -y install dnf-plugins-core \
+    && dnf config-manager --set-enabled powertools \
+    && dnf -y install \
+       nano htop mc wget git \
        bzip2 \
        perl \
-       gcc \
-       gcc-c++\
-       git \
-       gnupg \
        make \
-       munge \
-       munge-devel \
-       python3-devel \
-       python3-pip \
-       python3 \
-       mariadb-server \
-       mariadb-devel \
+       gcc gcc-c++\
+       gnupg \
+       munge munge-devel \
+       python3 python3-devel python3-pip \
+       mariadb-server mariadb-devel \
        psmisc \
        bash-completion \
        vim-enhanced \
        http-parser-devel \
        json-c-devel \
-    && yum clean all \
-    && rm -rf /var/cache/yum
+       apptainer \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
 
 RUN alternatives --set python /usr/bin/python3
-
-RUN pip3 install Cython pytest
-
-ARG GOSU_VERSION=1.17
 
 RUN set -ex \
     && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64" \
@@ -51,13 +46,10 @@ RUN set -ex \
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true
 
-ARG SLURM_TAG
-
-RUN set -x \
+RUN set -ex \
     && git clone -b ${SLURM_TAG} --single-branch --depth=1 https://github.com/SchedMD/slurm.git \
     && pushd slurm \
-    && ./configure --enable-debug --prefix=/usr --sysconfdir=/etc/slurm \
-        --with-mysql_config=/usr/bin  --libdir=/usr/lib64 \
+    && ./configure --enable-debug --prefix=/usr --sysconfdir=/etc/slurm --with-mysql_config=/usr/bin  --libdir=/usr/lib64 \
     && make install \
     && install -D -m644 etc/cgroup.conf.example /etc/slurm/cgroup.conf.example \
     && install -D -m644 etc/slurm.conf.example /etc/slurm/slurm.conf.example \
@@ -86,9 +78,10 @@ RUN set -x \
     && chown -R slurm:slurm /var/*/slurm* \
     && /sbin/create-munge-key
 
+# slurm config files
 COPY slurm.conf /etc/slurm/slurm.conf
 COPY slurmdbd.conf /etc/slurm/slurmdbd.conf
-RUN set -x \
+RUN set -ex \
     && chown slurm:slurm /etc/slurm/slurmdbd.conf \
     && chmod 600 /etc/slurm/slurmdbd.conf
 

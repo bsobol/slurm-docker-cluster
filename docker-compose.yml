@@ -14,11 +14,9 @@ services:
       - slurm-network
 
   slurmdbd:
-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
+    image: slurm-docker-cluster:${SLURM_VERSION}
     build:
       context: .
-      args:
-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
     command: ["slurmdbd"]
     container_name: slurmdbd
     hostname: slurmdbd
@@ -34,20 +32,18 @@ services:
       - slurm-network
 
   slurmctld:
-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
+    image: slurm-docker-cluster:${SLURM_VERSION}
     build:
       context: .
-      args:
-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
     command: ["slurmctld"]
     container_name: slurmctld
     hostname: slurmctld
-    volumes:
+    volumes: &slurm-volumes
       - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - slurm_jobdir:/data
       - var_log_slurm:/var/log/slurm
-      - ./cgroup.conf:/etc/slurm/cgroup.conf # <-- ADICIONADO AQUI
+      - ./cgroup.conf:/etc/slurm/cgroup.conf
     expose:
       - "6817"
     depends_on:
@@ -55,49 +51,24 @@ services:
     networks:
       - slurm-network
 
-  c1:
-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
+  c:
+    image: slurm-docker-cluster:${SLURM_VERSION}
     build:
       context: .
-      args:
-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
     command: ["slurmd"]
-    hostname: c1
-    container_name: c1
-    volumes:
-      - etc_munge:/etc/munge
-      - etc_slurm:/etc/slurm
-      - slurm_jobdir:/data
-      - var_log_slurm:/var/log/slurm
-      - ./cgroup.conf:/etc/slurm/cgroup.conf # <-- ADICIONADO AQUI
+#    hostname: c1
+#    container_name: c1
+    volumes: *slurm-volumes
     expose:
       - "6818"
     depends_on:
       - "slurmctld"
     networks:
       - slurm-network
-
-  c2:
-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
-    build:
-      context: .
-      args:
-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
-    command: ["slurmd"]
-    hostname: c2
-    container_name: c2
-    volumes:
-      - etc_munge:/etc/munge
-      - etc_slurm:/etc/slurm
-      - slurm_jobdir:/data
-      - var_log_slurm:/var/log/slurm
-      - ./cgroup.conf:/etc/slurm/cgroup.conf # <-- ADICIONADO AQUI
-    expose:
-      - "6818"
-    depends_on:
-      - "slurmctld"
-    networks:
-      - slurm-network
+    deploy:
+      mode: replicated
+      replicas: 16
+      endpoint_mode: vip
 
 volumes:
   etc_munge:

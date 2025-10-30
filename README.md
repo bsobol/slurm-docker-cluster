@@ -1,15 +1,11 @@
 # Slurm Docker Cluster
 
-<p align="center">
-    <b> English | <a href="./readme/README_CN.md">简体中文</a> </b>
-</p>
-
 **Slurm Docker Cluster** is a multi-container Slurm cluster designed for rapid
 deployment using Docker Compose. This repository simplifies the process of
 setting up a robust Slurm environment for development, testing, or lightweight
 usage.
 
-## 🏁 Getting Started
+## Getting Started
 
 To get up and running with Slurm in Docker, make sure you have the following tools installed:
 
@@ -19,11 +15,11 @@ To get up and running with Slurm in Docker, make sure you have the following too
 Clone the repository:
 
 ```bash
-git clone https://github.com/giovtorres/slurm-docker-cluster.git
+git clone https://github.com/bsobol/slurm-docker-cluster.git
 cd slurm-docker-cluster
 ```
 
-## 📦 Containers and Volumes
+## Containers and Volumes
 
 This setup consists of the following containers:
 
@@ -40,7 +36,7 @@ This setup consists of the following containers:
 - `var_lib_mysql`: Mounted to `/var/lib/mysql`
 - `var_log_slurm`: Mounted to `/var/log/slurm`
 
-## 🛠️  Building the Docker Image
+## Building the Docker Image
 
 The version of the Slurm project and the Docker build process can be simplified
 by using a `.env` file, which will be automatically picked up by Docker Compose.
@@ -60,7 +56,7 @@ tagging the container with a version ***(IMAGE_TAG)***:
 docker build --build-arg SLURM_TAG="slurm-21-08-6-1" -t slurm-docker-cluster:21.08.6 .
 ```
 
-## 🚀 Starting the Cluster
+## Starting the Cluster
 
 Once the image is built, deploy the cluster with the default version of slurm
 using Docker Compose:
@@ -82,7 +78,7 @@ This will start up all containers in detached mode. You can monitor their status
 docker compose ps
 ```
 
-## 📝 Register the Cluster
+## Register the Cluster
 
 After the containers are up and running, register the cluster with **SlurmDBD**:
 
@@ -99,7 +95,7 @@ For real-time cluster logs, use:
 docker compose logs -f
 ```
 
-## 🖥️  Accessing the Cluster
+## Accessing the Cluster
 
 To interact with the Slurm controller, open a shell inside the `slurmctld` container:
 
@@ -115,7 +111,7 @@ PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
 normal*      up 5-00:00:00      2   idle c[1-2]
 ```
 
-## 🧑‍💻 Submitting Jobs
+## Submitting Jobs
 
 The cluster mounts the `slurm_jobdir` volume across all nodes, making job files accessible from the `/data` directory. To submit a job:
 
@@ -132,7 +128,7 @@ Check the output of the job:
 c1
 ```
 
-## 🔄 Cluster Management
+## Cluster Management
 
 ### Stopping and Restarting:
 
@@ -156,7 +152,7 @@ To completely remove the containers and associated volumes:
 docker compose down -v
 ```
 
-## ⚙️ Advanced Configuration
+## Advanced Configuration
 
 You can modify Slurm configurations (`slurm.conf`, `slurmdbd.conf`) on the fly without rebuilding the containers. Just run:
 
@@ -164,17 +160,4 @@ You can modify Slurm configurations (`slurm.conf`, `slurmdbd.conf`) on the fly w
 ./update_slurmfiles.sh slurm.conf slurmdbd.conf
 docker compose restart
 ```
-
 This makes it easy to add/remove nodes or test new configuration settings dynamically.
-
-## 🤝 Contributing
-
-Contributions are welcomed from the community! If you want to add features, fix bugs, or improve documentation:
-
-1. Fork this repo.
-2. Create a new branch: `git checkout -b feature/your-feature`.
-3. Submit a pull request.
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
