@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mariadb:10.11
+    image: mariadb:11.8
     hostname: mysql
     container_name: mysql
     environment:
@@ -20,33 +20,48 @@ services:
       args:
         SLURM_TAG: ${SLURM_TAG}
         GOSU_VERSION: ${GOSU_VERSION}
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
     command: ["slurmdbd"]
     container_name: slurmdbd
     hostname: slurmdbd
+    configs:
+      - source: slurm_conf
+        target: /etc/slurm/slurm.conf
     volumes:
       - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
+    cap_add:
+      - SYS_ADMIN
     expose:
       - "6819"
     depends_on:
-      - mysql
+      - "mysql"
     networks:
       - slurm-network
 
   slurmctld:
     image: slurm-docker-cluster:${IMAGE_TAG}
     build: *build-config
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
     command: ["slurmctld"]
     container_name: slurmctld
     hostname: slurmctld
+    configs: &slurm_configs
+      - source: cgroup_conf
+        target: /etc/slurm/cgroup.conf
+      - source: slurm_conf
+        target: /etc/slurm/slurm.conf
     volumes: &slurm-volumes
       - etc_munge:/etc/munge
       - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
-      - ./cgroup.conf:/etc/slurm/cgroup.conf
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
       - scratch:/data/scratch
       - ${STORAGE_PATH}:/data/storage
+    cap_add:
+      - SYS_ADMIN
     expose:
       - "6817"
     depends_on:
@@ -54,19 +69,30 @@ services:
     networks:
       - slurm-network
 
-  c1:
+  node:
     image: slurm-docker-cluster:${IMAGE_TAG}
     build: *build-config
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
     command: ["slurmd"]
-    hostname: c1
-    container_name: c1
     volumes: *slurm-volumes
+    configs: *slurm_configs
+    cap_add:
+      - SYS_ADMIN
     expose:
       - "6818"
     depends_on:
       - "slurmctld"
     networks:
       - slurm-network
+    deploy:
+      mode: replicated
+      replicas: ${NNODES}
+
+configs:
+  cgroup_conf:
+    file: ./etc/slurm/cgroup.conf
+  slurm_conf:
+    file: ./etc/slurm/slurm.conf
 
 volumes:
   etc_munge:
