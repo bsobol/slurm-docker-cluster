@@ -32,8 +32,7 @@ services:
       - etc_slurm:/etc/slurm
       - var_log_slurm:/var/log/slurm
       - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
-    cap_add:
-      - SYS_ADMIN
+    privileged: true
     expose:
       - "6819"
     depends_on:
@@ -60,8 +59,7 @@ services:
       - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
       - scratch:/data/scratch
       - ${STORAGE_PATH}:/data/storage
-    cap_add:
-      - SYS_ADMIN
+    privileged: true
     expose:
       - "6817"
     depends_on:
@@ -76,8 +74,7 @@ services:
     command: ["slurmd"]
     volumes: *slurm-volumes
     configs: *slurm_configs
-    cap_add:
-      - SYS_ADMIN
+    privileged: true
     expose:
       - "6818"
     depends_on:
