@@ -51,9 +51,6 @@ RUN set -ex \
     && pushd slurm \
     && ./configure --enable-debug --prefix=/usr --sysconfdir=/etc/slurm --with-mysql_config=/usr/bin  --libdir=/usr/lib64 \
     && make -j$(nproc) install \
-    && install -D -m644 etc/cgroup.conf.example /etc/slurm/cgroup.conf.example \
-    && install -D -m644 etc/slurm.conf.example /etc/slurm/slurm.conf.example \
-    && install -D -m644 etc/slurmdbd.conf.example /etc/slurm/slurmdbd.conf.example \
     && install -D -m644 contribs/slurm_completion_help/slurm_completion.sh /etc/profile.d/slurm_completion.sh \
     && popd \
     && rm -rf slurm \
@@ -65,9 +62,6 @@ RUN set -ex \
         /var/run/slurmdbd \
         /var/lib/slurmd \
         /var/log/slurm \
-        /data \
-        /data/scratch \
-        /data/storage \
     && touch /var/lib/slurmd/node_state \
         /var/lib/slurmd/front_end_state \
         /var/lib/slurmd/job_state \
@@ -79,6 +73,14 @@ RUN set -ex \
         /var/lib/slurmd/fed_mgr_state \
     && chown -R slurm:slurm /var/*/slurm* \
     && /sbin/create-munge-key
+
+RUN set -ex \
+    && mkdir \
+        /data \
+        /data/scratch \
+        /data/storage \
+    && groupadd --gid=1000 user \
+    && useradd  -m -g user --uid=1000 user
 
 # slurmdbd config file
 COPY ./etc/slurm/slurmdbd.conf /etc/slurm/slurmdbd.conf

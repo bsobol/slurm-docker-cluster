@@ -1,23 +1,11 @@
 # Slurm Docker Cluster
 
-**Slurm Docker Cluster** is a multi-container Slurm cluster designed for rapid
-deployment using Docker Compose. This repository simplifies the process of
-setting up a robust Slurm environment for development, testing, or lightweight
-usage.
-
 ## Getting Started
 
 To get up and running with Slurm in Docker, make sure you have the following tools installed:
 
 - **[Docker](https://docs.docker.com/get-docker/)**
 - **[Docker Compose](https://docs.docker.com/compose/install/)**
-
-Clone the repository:
-
-```bash
-git clone https://github.com/bsobol/slurm-docker-cluster.git
-cd slurm-docker-cluster
-```
 
 ## Containers and Volumes
 
@@ -26,7 +14,7 @@ This setup consists of the following containers:
 - **mysql**: Stores job and cluster data.
 - **slurmdbd**: Manages the Slurm database.
 - **slurmctld**: The Slurm controller responsible for job and resource management.
-- **c1, c2**: Compute nodes (running `slurmd`).
+- Compute nodes (running `slurmd`).
 
 ### Volumes:
 
@@ -78,18 +66,6 @@ This will start up all containers in detached mode. You can monitor their status
 ```bash
 docker compose ps
 ```
-
-## Register the Cluster
-
-After the containers are up and running, register the cluster with **SlurmDBD**:
-
-```bash
-./register_cluster.sh
-```
-
-> **Tip**: Wait a few seconds for the daemons to initialize before running the registration script to avoid connection errors like:
-> `sacctmgr: error: Problem talking to the database: Connection refused`.
-
 For real-time cluster logs, use:
 
 ```bash
@@ -101,34 +77,8 @@ docker compose logs -f
 To interact with the Slurm controller, open a shell inside the `slurmctld` container:
 
 ```bash
-docker exec -it slurmctld bash
+docker exec -itu user slurmctld bash
 ```
-
-Now you can run any Slurm command from inside the container:
-
-```bash
-[root@slurmctld /]# sinfo
-PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
-normal*      up 5-00:00:00      2   idle c[1-2]
-```
-
-## Submitting Jobs
-
-The cluster mounts the `scratch` volume across all nodes, making job files accessible from the `/data` directory. To submit a job:
-
-```bash
-[root@slurmctld /]# cd /data/
-[root@slurmctld data]# sbatch --wrap="hostname"
-Submitted batch job 2
-```
-
-Check the output of the job:
-
-```bash
-[root@slurmctld data]# cat slurm-2.out
-c1
-```
-
 ## Cluster Management
 
 ### Stopping and Restarting:
@@ -152,13 +102,3 @@ To completely remove the containers and associated volumes:
 ```bash
 docker compose down -v
 ```
-
-## Advanced Configuration
-
-You can modify Slurm configurations (`slurm.conf`, `slurmdbd.conf`) on the fly without rebuilding the containers. Just run:
-
-```bash
-./update_slurmfiles.sh slurm.conf slurmdbd.conf
-docker compose restart
-```
-This makes it easy to add/remove nodes or test new configuration settings dynamically.
