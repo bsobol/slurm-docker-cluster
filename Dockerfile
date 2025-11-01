@@ -54,8 +54,8 @@ RUN set -ex \
     && install -D -m644 contribs/slurm_completion_help/slurm_completion.sh /etc/profile.d/slurm_completion.sh \
     && popd \
     && rm -rf slurm \
-    && groupadd -r --gid=990 slurm \
-    && useradd -r -g slurm --uid=990 slurm \
+    && groupadd --system --gid 31002 slurm \
+    && useradd --system --uid 31002 --gid 31002 slurm \
     && mkdir /etc/sysconfig/slurm \
         /var/spool/slurmd \
         /var/run/slurmd \
@@ -76,6 +76,7 @@ RUN set -ex \
 
 RUN set -ex \
     && mkdir \
+        /lustre \
         /data \
         /data/scratch \
         /data/storage \
